@@ -1,11 +1,12 @@
 <?php
-
-
 namespace enflares\System;
-
 
 use Closure;
 
+/**
+ * Class Route
+ * @package enflares\System
+ */
 class Route extends Component
 {
     protected static $prefix;
@@ -21,11 +22,14 @@ class Route extends Component
     public static function profile($name)
     {
         if( isset(static::$profiles[$name]) )
-        {
             return static::$profiles[$name];
-        }
     }
 
+    /**
+     * Provides a prefix to a group of routes
+     * @param $prefix
+     * @param Closure $callback
+     */
     public static function group($prefix, Closure $callback)
     {
         $tmp = static::$prefix;
@@ -34,6 +38,13 @@ class Route extends Component
         static::$prefix = $tmp;
     }
 
+    /**
+     * Add one rule to the routes matching
+     * @param $method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function add($method, $pattern, $command)
     {
         $route = new static;
@@ -41,48 +52,94 @@ class Route extends Component
         $route->command = $command;
 
         foreach( (array)$method as $m )
-        {
             static::$matches[strtoupper($m)][] = $route;
-        }
 
         return $route;
     }
 
+    /**
+     * Add a rule on "ANY" methods
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function any($pattern, $command)
     {
         return static::add(['HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE'], $pattern, $command);
     }
 
+    /**
+     * Add a rule on "HEAD" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function head($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "GET" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function get($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "POST" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function post($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "PUT" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function put($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "PATCH" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function patch($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "DELETE" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function delete($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
     }
 
+    /**
+     * Add a rule on "OPTIONS" method
+     * @param $pattern
+     * @param $command
+     * @return static
+     */
     public static function options($pattern, $command)
     {
         return static::add(__FUNCTION__, $pattern, $command);
@@ -106,21 +163,12 @@ class Route extends Component
     public static function match($methods, $url)
     {
         foreach( (array)$methods as $method )
-        {
             if( isset(static::$matches[$method]) )
-            {
                 foreach( static::$matches[$method] as $route )
-                {
-                    $action = $route->validate($url);
-                    if( $action ) return $action;
-                }
-            }
-        }
+                    if( $action= $route->validate($url) ) return $action;
 
         if( ($fallback = static::$fallback) instanceof Closure )
-        {
             return $fallback($url, $methods);
-        }
     }
 
     /**
@@ -140,17 +188,17 @@ class Route extends Component
     protected $query;
     protected $wrapper;
 
+    /**
+     * Generates an Action
+     * @return Action
+     */
     public function action()
     {
-        $route = $this->route();
-
-        $parts = explode('/', strtr(strtr(trim($route, '/\\. '), '\\', '/'), '.', '/'));
-
+        $parts = explode('/', strtr(strtr(trim($route = $this->route(), '/\\. '), '\\', '/'), '.', '/'));
         foreach( $parts as $index=>$part )
             $parts[$index] = str_replace(' ', '', ucwords(strtr($part, '-', ' ')));
 
-        switch( count($parts) )
-        {
+        switch( count($parts) ) {
             case 0:
                 $command = 'index';
                 $parts = ['index'];
@@ -172,11 +220,14 @@ class Route extends Component
         return new Action([implode('/', $parts), $command], $args);
     }
 
+    /**
+     * Generates a RESTFul action
+     * @param null $method
+     * @return Action
+     */
     public function rest($method=NULL)
     {
-        $route = $this->route();
-
-        $parts = explode('/', strtr(strtr(trim($route, '/\\. '), '\\', '/'), '.', '/'));
+        $parts = explode('/', strtr(strtr(trim($route = $this->route(), '/\\. '), '\\', '/'), '.', '/'));
 
         foreach( $parts as $index=>$part )
             $parts[$index] = str_replace(' ', '', ucwords(strtr($part, '-', ' ')));
@@ -189,40 +240,70 @@ class Route extends Component
         return new Action([implode('/', $parts), $method ?: 'index'], $args);
     }
 
+    /**
+     * Gets/Sets the root path
+     * @param null $value
+     * @return string|null
+     */
     public function root($value=NULL)
     {
         if( func_num_args() ) $this->root = $value;
         return $this->root;
     }
 
+    /**
+     * Gets/Sets the route part
+     * @param null $value
+     * @return string |null
+     */
     public function route($value=NULL)
     {
         if( func_num_args() ) $this->route = $value;
         return $this->route;
     }
-    
+
+    /**
+     * Gets/Sets the query part
+     * @param null $value
+     * @return string |null
+     */
     public function query($value=NULL)
     {
         if( func_num_args() ) $this->query = $value;
         return $this->query;
     }
-    
+
+    /**
+     * Gets/Sets the id part
+     * @param null $value
+     * @return string|null
+     */
     public function id($value=NULL)
     {
         if( func_num_args() ) $this->id = $value;
         return $this->id;
     }
-    
+
+    /**
+     * Gets/Sets the wrapper part
+     * @param null $value
+     * @return string|null
+     */
     public function wrapper($value=NULL)
     {
         if( func_num_args() ) $this->wrapper = $value;
         return $this->wrapper;
     }
 
+    /**
+     * Gets/Sets the parameters
+     * @param null $key
+     * @param null $value
+     * @return $this|array|null
+     */
     public function params($key=NULL, $value=NULL)
     {
-        switch( func_num_args() )
-        {
+        switch( func_num_args() ) {
             case 0:
                 return $this->args;
             break;
@@ -258,14 +339,11 @@ class Route extends Component
      */
     public function validate($url)
     {
-        if( preg_match($this->pattern, $url, $args) )
-        {
-            if( $this->command instanceof Closure )
-            {
+        if( preg_match($this->pattern, $url, $args) ) {
+            if( $this->command instanceof Closure ) {
                 $func = $this->command;
                 $matches = $args;
-                return function(Request $request, Response $response) use($args, $func, $url, $matches)
-                {
+                return function(Request $request, Response $response) use($args, $func, $url, $matches) {
                     return $func($request->merge($args), $response, $url, $matches);
                 };
             }
@@ -282,20 +360,17 @@ class Route extends Component
      */
     public function url(Array $args=NULL, $mime=NULL)
     {
-        if( isset($args['id']) ) 
-        {
+        if( isset($args['id']) )  {
             $this->id($args['id']);
             unset($args['id']);
         }
         
-        if( isset($args['route']) ) 
-        {
+        if( isset($args['route']) ) {
             $this->route($args['route']);
             unset($args['route']);
         }
         
-        if( isset($args['name']) ) 
-        {
+        if( isset($args['name']) )  {
             $this->query($args['name']);
             unset($args['name']);
         }
@@ -308,34 +383,26 @@ class Route extends Component
         if( $value=strtr(strtr($this->query(), '.', ' '), '\\', ' ') ) $s[] = strtr(ucwords($value), ' ', '/');
         if( $value=intval($this->id()) ) $s[] = $value;
         
-        if( count($s) )
-        {
+        if( count($s) ) {
             $pattern = implode('/', $s);
             if( $value=$this->wrapper() ) $pattern .= '.'.trim($value, '.');
-
             $args = array_merge($this->params(), (array)$args);
-        }else{
+        } else {
             $pattern = $this->pattern;
-            foreach( (array)$args as $key=>$value )
-            {
-                if( strpos($pattern, '{'.$key.'}')!==FALSE )
-                {
+            foreach( (array)$args as $key=>$value ) {
+                if( strpos($pattern, '{'.$key.'}')!==FALSE ) {
                     $pattern = str_replace('{'.$key.'}', $value, $pattern);
                     unset($args[$key]);
                 }
             }
 
             if( strpos($pattern, '{')!==FALSE )
-            {
-                InvalidException::trigger('Insufficient arguments provided for url "%s"', $this->pattern);
-            }
+                return InvalidException::trigger('Insufficient arguments provided for url "%s"', $this->pattern);
         }
 
         if( $args && count($args) )
-        {
             return $pattern . '?' . http_build_query($args);
-        }else{
+        else
             return $pattern;
-        }
     }
 }

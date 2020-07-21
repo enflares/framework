@@ -85,7 +85,7 @@ class Action extends Component
     /**
      * Class constructor
      *
-     * @param string $route
+     * @param string|array $route
      * @param array $args
      * @param null $namespace
      */

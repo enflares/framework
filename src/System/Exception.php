@@ -11,7 +11,7 @@ class Exception extends \Exception
 
     /**
      * @param null $message
-     * @param null $args
+     * @param mixed $args
      * @throws Exception
      */
     public static function trigger($message=NULL, $args=NULL)

@@ -10,12 +10,20 @@
             "email": "shaotang.zhang@gmail.com"
         }
     ],
+    "support": {
+        "issues": "https://github.com/enflares/framework/issues",
+        "source": "https://github.com/enflares/framework"
+    },
     "require": {
         "php": "^7.2.5",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-libxml": "*",
-        "mobiledetect/mobiledetectlib": "^2.8"
+        "ext-mysqli": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-simplexml": "*",
+        "ext-gd": "*"
     },
     "autoload": {
         "psr-4": {
