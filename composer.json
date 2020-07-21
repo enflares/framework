@@ -1,0 +1,35 @@
+{
+    "name": "enflares/framework",
+    "description": "The Enflares PHP Framework.",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Shaotang Zhang",
+            "email": "shaotang.zhang@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2.5",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "mobiledetect/mobiledetectlib": "^2.8"
+    },
+    "autoload": {
+        "psr-4": {
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "post-root-package-install": [
+        ]
+    }
+}
