@@ -11,7 +11,7 @@ if( defined('ENFLARES_VERSION') ) return;
 /**
  * The version of the Enflares PHP Framework
  */
-define('ENFLARES_VERSION', '1.0.0');
+define('ENFLARES_VERSION', '0.1.0');
 
 /**
  * A shortcut for DIRECTORY_SEPARATOR
