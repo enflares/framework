@@ -50,8 +50,8 @@ if( !function_exists('url') ){
         $u = parse_url($base);
         if( $https ) $u['scheme'] = 'https';
 
-        if( !empty($args) && isset($u['query']) ) {
-            parse_str($u['query'], $a);
+        if( !empty($args) ) {
+            parse_str($u['query']??NULL, $a);
             $a = array_merge($a, $args);
             foreach( $a as $key=>$value )
                 if( empty($value) ) unset($a[$key]);
@@ -88,13 +88,25 @@ if( !function_exists('home') ){
      * @return string
      */
     function home($url=NULL, Array $args=NULL, $https=NULL)
-    {  
-        $base = rtrim(env('BASE_URL') ?: '/', '/') . '/';
+    {
+        if( is_array($url) ) {
+            $k = $url;
+            $url = $k['route'] ?? NULL;
+            $https = $k['https'] ?? NULL;
+            $args = array_merge($k, $args);
+            unset($args['route'], $args['https'], $k);
+        }
+
+        $base = rtrim(env('BASE_URL') ?: '/', '/') . '/';        
+        if( $https ) $base = 'https://'.$_SERVER['SERVER_NAME'] . '/' . $base;    
         if( $home = env('HOME_URL') ) $base .= trim($home, '/') . '/';
-        if( $https ) $base = 'https://'.$_SERVER['SERVER_NAME'] . '/' . $base;
-        
-        if( function_exists('url_build') && (strpos($url, '.')===FALSE) )
-            return $base . url_build($url, $args);
+
+        $url = rtrim( $url . '.' . ($args['wrap']??NULL), '.');
+        $site = $args['site'] ?? env('SITE_KEY');
+        unset($args[0], $args['wrap'], $args['site']);
+
+        if( function_exists('url_build') )
+            return $base . url_build($url, $args, $https, $site);
 
         $pos = strpos($url, '?');
         if( $pos!==FALSE ) {
@@ -108,7 +120,7 @@ if( !function_exists('home') ){
 
         if( count($args) ) $url .= '?' . http_build_query($args);
 
-        return $url;
+        return $base.$url;
     }
 }
 
@@ -158,12 +170,12 @@ if( !function_exists('debug') ){
                     print_r($arg);
             }
 
-            foreach( debug_backtrace() as $bt ) {
+            foreach( debug_backtrace() as $bt ) {                
                 if( isset($bt['function']) && in_array($bt['function'], ['debug', 'debugX']) )
                     continue;
 
                 echo PHP_EOL, '<small>';                
-                echo $bt[0]['file'], '@', $bt[0]['line'];                
+                echo $bt['file']??NULL, '@', $bt['line']??NULL;                
                 echo '</small>';
             } 
 
@@ -267,8 +279,11 @@ if( !function_exists('tag_attr') ) {
         if( !$must && empty($value) && (var_export($value, TRUE)!=='0') ) 
             return; 
 
-        if( is_array($value) )
-            return implode(' ', array_map(__FUNCTION__, $value, [$must, $prefix]));
+        if( is_array($value) ) {
+            foreach( $value as $k=>$v ) 
+                $value[$k] = tag_attr($k, $v, $must, $prefix);
+            return implode(' ', array_values($value));    
+        }
             
         return sprintf('%s="%s"', strtr($prefix.$key, '_', '-'), str_replace('"', '&quot;', $value));
     }
@@ -362,20 +377,26 @@ if( !function_exists('url_build') ) {
 
         $base = trim(str_replace('/-', '/', strtr(strtolower(preg_replace('/([A-Z])/', '-\\1', $route)), '\\', '/')), '/');
         $base = explode('.', $base);
+
+        print_r($base);
+
         $s[] = array_shift($base);
 
-        if( isset($args['name']) ) {
+        if( isset($args['name']) && $args['name'] ) {
             $s[] = implode('/', array_map('ucfirst', explode('/', strtr($args['name'], '\\', '/'))));
             $args['name'] = NULL;
         }
 
-        if( isset($args['id']) && ((string)$args['id'] === (string)intval($args['id'])) ) {
+        if( isset($args['id']) && $args['id'] ) {
             $s[] = $args['id'];
             $args['id'] = NULL;
         }
 
-        array_unshift($base, url(implode('/', $s), $args, $https));
-        return implode('.', $base);
+        $u = explode('?', url(implode('/', $s), $args, $https));
+        array_unshift($base, array_shift($u));
+        array_unshift($u, implode('.', $base));
+
+        return implode('?', $u);
     }
 }
 
@@ -393,16 +414,16 @@ if( !function_exists('url_parse') ) {
         
         $pattern = '#(?:/(?<id>\d+))?(?:\.(?<wrap>\w+))?$#';
         if( preg_match($pattern, $url, $matches) ) {
-            if( isset($matches['id']) ) $info['id'] = intval($matches['id']);
-            if( isset($matches['wrap']) ) $info['wrap'] = intval($matches['wrap']);
+            if( isset($matches['id']) && ($id=intval($matches['id']))) $info['id'] = $id;
+            if( isset($matches['wrap']) ) $info['wrap'] = trim($matches['wrap'], '.');
             $url = substr($url, 0, -strlen($matches[0]));
         }
         
         $pattern = '#(/~(?<site>[\w\-]+))?(?<route>(?:/[a-z][\w\-]*)*)(?<name>(?:/[A-Z0-9][^\.\/]*)*)$#';
         if( preg_match($pattern, $url, $matches) ) {
-            if( isset($matches['site']) ) $info['site'] = $matches['site'];
-            if( isset($matches['route']) ) $info['route'] = trim($matches['route'], '/');
-            if( isset($matches['name']) ) $info['name'] = trim($matches['name'], '/');
+            if( isset($matches['site'])  && $matches['site'])   $info['site']  = $matches['site'];
+            if( isset($matches['route']) && $matches['route'] ) $info['route'] = trim($matches['route'], '/');
+            if( isset($matches['name'])  && $matches['name'] )  $info['name']  = trim($matches['name'], '/');
         }
 
         return $info;

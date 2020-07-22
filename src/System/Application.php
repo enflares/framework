@@ -45,6 +45,8 @@ class Application extends Component
         });
 
         $this->detect();
+        $this->onInit();
+        
         $this->fire('AppStarted');
     }
 
@@ -59,6 +61,11 @@ class Application extends Component
             include_once $file;
 
         return class_exists($class, FALSE) || interface_exists($class) || trait_exists($class);
+    }
+
+    protected function onInit()
+    {
+
     }
 
     /**
@@ -191,9 +198,7 @@ class Application extends Component
     {
         $this->fire('RequestStart');
 
-        $url = isset($_SERVER['REDIRECT_URL']) ? $_SERVER['REDIRECT_URL'] : (
-            isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : NULL
-        );
+        $url = $_SERVER['REQUEST_URI'] ?? $_SERVER['REDIRECT_URL'] ?? $_SERVER['PATH_INFO'] ?? NULL;
 
         $pos = strpos($url, '?');
         if( $pos!==FALSE ) {
@@ -201,6 +206,9 @@ class Application extends Component
             $this->request()->merge($matches);
             $url = substr($url, 0, $pos);
         }
+
+        if( ($root = rtrim(env('BASE_URL'), '/')) && !strncasecmp($url, $root, $len=strlen($root)) )
+            $url = substr($url, $len);
 
         $result = $this->forward($this->route($url, $_SERVER['REQUEST_METHOD']));
         $this->response()->setContent($result);

@@ -31,6 +31,11 @@ defined('SITE_ROOT')    or define('SITE_ROOT',  realpath(DOC_ROOT . DS . 'public
 defined('WEB_ROOT')     or define('WEB_ROOT',   realpath(SITE_ROOT . DS . 'dist'));
 
 /**
+ * Import the composer class auto loader
+ */
+include_once __DIR__ . '/../../../autoload.php';
+
+/**
  * Import the fundamental helpers
  */
 include_once __DIR__ . '/common.php';

@@ -11,12 +11,13 @@
 
 // application, request, response, controller, view, model, module, route, action, db
 
-use App\Application as App;
 use enflares\Db\Db;
+use enflares\System\View;
+use App\Application as App;
 use enflares\System\Action;
-use enflares\System\Application;
 use enflares\System\Request;
 use enflares\System\Response;
+use enflares\System\Application;
 
 
 if( !function_exists('map') ) {
@@ -103,6 +104,6 @@ if( !function_exists('response') ) {
 if( !function_exists('view') ) {
     function view($name, Array $args=NULL, $base=NULL)
     {
-
+        return new View($name, $args, $base);
     }
 }

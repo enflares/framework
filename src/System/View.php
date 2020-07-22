@@ -33,7 +33,7 @@ class View extends Template
      */
     public function __construct($name, Array $data=NULL, $base=NULL)
     {
-        parent::__construct($data);
+        parent::__construct(NULL, $data);
         $this->setTemplate($name, $base);
     }
 
