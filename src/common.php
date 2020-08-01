@@ -127,7 +127,7 @@ if( !function_exists('home') ){
 if( !function_exists('import') ){
     /**
      * Include a PHP file
-     * @return bool
+     * @return mixed
      */
     function import() {
         if( $file = realpath(path(...func_get_args()).'.php') )
@@ -150,7 +150,7 @@ if( !function_exists('redirect') ){
         }
 
         $url = json_encode($url);
-        exit("<html lang='en'><head><meta name=\"refresh\" content=\"0;$url\"><title>Redirecting</title><script>window.location.replace($url)</script></head></html>");
+        exit("<html lang='en'><head><meta name=\"refresh\" content=\"0;$url\"><title>Redirecting...</title></title><script>window.location.replace($url)</script></head></html>");
     }
 }
 
@@ -162,7 +162,7 @@ if( !function_exists('debug') ){
         $args=func_get_args();
 
         if( env('IS_DEBUG') ) {
-            echo '<pre>';
+            echo '<pre style="border: 1px solid #f2f2f2">';
 
             foreach( $args as $arg ) {
                 if( is_bool($arg) )
@@ -171,13 +171,23 @@ if( !function_exists('debug') ){
                     print_r($arg);
             }
 
-            foreach( debug_backtrace() as $bt ) {                
-                if( isset($bt['function']) && in_array($bt['function'], ['debug', 'debugX']) )
+            foreach( debug_backtrace() as $bt ) {
+                if( isset($bt['function']) && ($bt['function']==='debugX') )
                     continue;
-
-                echo PHP_EOL, '<small>';                
-                echo $bt['file']??NULL, '@', $bt['line']??NULL;                
-                echo '</small>';
+                    
+                if( isset($bt['file'], $bt['line']) ) {
+                    echo '<small>';                     
+                    echo $bt['file']??NULL, '@', $bt['line']??NULL;    
+                    $lines = file($bt['file']);
+                    $code = $lines[$bt['line']-1] ?? NULL;
+                    if( $code ) {
+                        echo '<div style="background-color: #f4f4f4">';
+                        highlight_string( '<?php '.trim($code));
+                        echo '</div>';
+                    }     
+                    echo '</small>';     
+                    break;
+                }  
             } 
 
             echo '</pre>';
@@ -255,8 +265,9 @@ if( !function_exists('tag_content') ) {
         if( $content instanceof Closure )
             return tag_content(call_user_func($content));
 
-        if( is_array($content) )
-            return implode(array_map(__FUNCTION__, $content));
+        if( is_array($content) ) {
+            return implode(array_map('tag_content', $content));
+        }
 
         return (string)$content;
     }
@@ -295,7 +306,7 @@ if( !function_exists('vars') ) {
      * Fetch the value from data
      *
      * @param string $key
-     * @param mixed $data
+     * @param object|array $data
      * @return mixed
      */
     function vars($key, $data) {
@@ -317,6 +328,87 @@ if( !function_exists('vars') ) {
         return $p;
     }
 }
+
+if( !function_exists('var_get') ) {
+    /**
+     * Fetch the value from data
+     *
+     * @param object|array $data
+     * @param string $key
+     * @return mixed
+     */
+    function var_get($data, $key) {
+        return vars($key, $data);
+    }
+}
+
+if( !function_exists('var_set') ) {
+    /**
+     * Fetch the value from data
+     *
+     * @param object|array $data
+     * @param string $key
+     * @param mixed $value
+     * @return mixed
+     */
+    function var_set($data, $key, $value) {
+        $p = &$data;
+
+        $parts = is_array($key) ? $key : explode('.', $key);
+        while( $k=array_shift($parts) ){
+            if( is_object($p) ){
+                if( count($parts) ) {
+                    $p = &$p->$k;
+                }else{
+                    if( is_null($value) ) unset($p->$k);
+                    else $p->$k = $value;
+                    break;
+                }
+            }elseif( is_array($p) ) {
+                if( count($parts) ){
+                    if( !isset($p[$k]) ) $p[$k] = [];
+                    $p = &$p[$k];
+                }else{
+                    if( is_null($value) ) unset($p[$k]);
+                    else $p[$k] = $value;
+                    break;
+                }
+            }else{
+                $p = var_set([], $parts, $value);
+                break;
+            }
+        }
+
+        return $data;
+    }
+}
+
+if( !function_exists('var_isset') ) {
+    /**
+     * Fetch the value from data
+     *
+     * @param string $key
+     * @param mixed $data
+     * @return bool
+     */
+    function var_isset($data, $key) {
+        return !is_null(var_get($data, $key));
+    }
+}
+
+if( !function_exists('var_unset') ) {
+    /**
+     * Fetch the value from data
+     *
+     * @param string $key
+     * @param mixed $data
+     * @return void
+     */
+    function var_unset($data, $key) {
+        return var_set($data, $key, NULL);
+    }
+}
+
 
 if( !function_exists('uuid') ) {
     /**
@@ -379,8 +471,6 @@ if( !function_exists('url_build') ) {
         $base = trim(str_replace('/-', '/', strtr(strtolower(preg_replace('/([A-Z])/', '-\\1', $route)), '\\', '/')), '/');
         $base = explode('.', $base);
 
-        print_r($base);
-
         $s[] = array_shift($base);
 
         if( isset($args['name']) && $args['name'] ) {
@@ -412,15 +502,14 @@ if( !function_exists('url_parse') ) {
     function url_parse($url) {
 
         $info = [$url = strtr($url, '\\', '/')];
-        
         $pattern = '#(?:/(?<id>\d+))?(?:\.(?<wrap>\w+))?$#';
         if( preg_match($pattern, $url, $matches) ) {
             if( isset($matches['id']) && ($id=intval($matches['id']))) $info['id'] = $id;
             if( isset($matches['wrap']) ) $info['wrap'] = trim($matches['wrap'], '.');
-            $url = substr($url, 0, -strlen($matches[0]));
+            if( $len=strlen($matches[0]) ) $url = substr($url, 0, -$len);
         }
         
-        $pattern = '#(/~(?<site>[\w\-]+))?(?<route>(?:/[a-z][\w\-]*)*)(?<name>(?:/[A-Z0-9][^\.\/]*)*)$#';
+        $pattern = '#(/~(?<site>[\w\-]+))?(?<route>(?:/[a-z][\w\-]*)+)?(?<name>(?:/[A-Z0-9][^\.\/]*)+)?$#';
         if( preg_match($pattern, $url, $matches) ) {
             if( isset($matches['site'])  && $matches['site'])   $info['site']  = $matches['site'];
             if( isset($matches['route']) && $matches['route'] ) $info['route'] = trim($matches['route'], '/');

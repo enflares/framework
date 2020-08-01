@@ -22,7 +22,7 @@ class Theme
      */
     public static function lookUpTemplate($name, $base=NULL)
     {
-        $name = strtr($name, '.', DS) . '.' . trim(env('THEME_TEMPLATE_EXT', 'php'), '.');
+        $name = strtr($name, '.', DS) . '.' . trim(env('THEME_TEMPLATE_EXT', 'php'), '.');        
         return realpath($base ? (rtrim($base, '/\\') . DS . ltrim($name, '/\\'))
                       : map('view', static::name(), $name) );
     }

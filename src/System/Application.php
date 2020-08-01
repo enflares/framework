@@ -27,7 +27,7 @@ class Application extends Component
     {
         parent::__construct();
 
-        $this->request = new Request;
+        $this->request = new Request($_REQUEST);
         $this->response = Response::getInstance();
 
         $this->loadConfig(path('.env'));
@@ -42,6 +42,7 @@ class Application extends Component
             if ($last_error['type'] === E_ERROR) {
                 return $this->errorHandler(E_ERROR, $last_error['message'], $last_error['file'], $last_error['line']);
             }
+            return null;
         });
 
         $this->detect();
@@ -235,6 +236,8 @@ class Application extends Component
             else
                 return $action;
         }
+
+        return $action;
     }
 
     /**
@@ -242,6 +245,7 @@ class Application extends Component
      * @param null $content
      * @param array|null $headers
      * @return $this
+     * @throws \Exception
      */
     public function send($content=NULL, Array $headers=NULL)
     {

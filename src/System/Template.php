@@ -41,7 +41,10 @@ class Template extends Component
      */
     public function view_file($file=NULL)
     {
-        if( func_num_args() ) $this->__view_real_file__ = realpath($file);
+        if( func_num_args() ) {
+            $this->__view_real_file__ = realpath($file);
+        }
+        
         return $this->__view_real_file__;
     }
 
@@ -54,7 +57,7 @@ class Template extends Component
     {
         $this->onRender();
 
-        if( $this->__view_real_file__ ) {
+        if( is_file($this->__view_real_file__) ) {
             extract($this->__toArray());
             include $this->__view_real_file__;
         }else $this->renderContent();

@@ -142,7 +142,7 @@ class Controller extends Component
      * @param null $condition
      * @param null $message
      * @param null $args
-     * @return void|null
+     * @return mixed
      * @throws Exception
      */
     protected function asserts($condition=NULL, $message=NULL, $args=NULL)
@@ -161,7 +161,7 @@ class Controller extends Component
      * @param null $item
      * @param null $message
      * @param null $args
-     * @return void|null
+     * @return mixed
      * @throws Exception
      */
     protected function assertsNotFound($item=NULL, $message=NULL, $args=NULL)
@@ -175,7 +175,7 @@ class Controller extends Component
      * @param $item
      * @param $message
      * @param $args
-     * @return void|null
+     * @return mixed
      * @throws Exception
      */
     protected function assertsDuplicated($item=NULL, $message=NULL, $args=NULL)

@@ -73,6 +73,8 @@ class Model extends Data implements EntityInterface
 
         if( $prefix && array_key_exists($name = $prefix . '_'. $field, $fields) )
             return $name;
+
+        return NULL;
     }
 
     /**
@@ -96,10 +98,12 @@ class Model extends Data implements EntityInterface
         if( is_array($item) ) $item = new static($item);
         if( $item instanceof static) $g[$id = $item->id()] = $item;
         elseif( is_int($item) ) $id = $item;
-        else return;
+        else return NULL;
 
         if( $destroy ) unset($g[$id]);
         else return $g[$id];
+
+        return NULL;
     }
 
     /**
@@ -118,6 +122,7 @@ class Model extends Data implements EntityInterface
 
         if( $data = static::search($criteria, $ordering, 1, $index)->fetch() )
             return static::buffer($data);
+        return NULL;
     }
 
     /**
@@ -284,6 +289,8 @@ class Model extends Data implements EntityInterface
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
+    use ConfigJsonTrait;
+
     public function __get($key)
     {
         return parent::__get(static::entity_field($key) ?: $key);
@@ -347,6 +354,8 @@ class Model extends Data implements EntityInterface
 
         if( $field = static::entity_field('id') )
             return max(0, intval($this->__get($field)));
+
+        return NULL;
     }
 
     /**
@@ -402,6 +411,8 @@ class Model extends Data implements EntityInterface
     {
         if( $time = intval($this->__get('created_at')) )
             return date($format ?: env('LOCALE_DATETIME', 'Y-m-d H:i:s'), $time);
+
+        return NULL;
     }
 
     /**
@@ -414,6 +425,8 @@ class Model extends Data implements EntityInterface
     {
         if( $time = intval($this->__get('created_at')) )
             return date($format ?: env('LOCALE_DATETIME', 'Y-m-d H:i:s'), $time);
+
+        return NULL;
     }
 
     /**
@@ -426,6 +439,8 @@ class Model extends Data implements EntityInterface
     {
         if( $time = intval($this->__get('created_at')) )
             return date($format ?: env('LOCALE_DATETIME', 'Y-m-d H:i:s'), $time);
+
+        return NULL;
     }
 
     /**
@@ -449,7 +464,7 @@ class Model extends Data implements EntityInterface
             if (static::update($this)) static::buffer($this);
         }else {
             $this->validate_create();
-            static::create($this);
+            if( static::create($this) ) static::buffer($this);
         }
 
         return $this;

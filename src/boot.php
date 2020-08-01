@@ -47,7 +47,10 @@ include_once __DIR__ . '/application.php';
  * Import the helpers for localization
  */
 include_once __DIR__ . '/localization.php';
-/**
- * Import the helpers for theme
- */
-include_once __DIR__ . '/the.php';
+
+if( file_exists(__DIR__ . '/the.php') ) {
+    /**
+     * Import the helpers for theme
+     */
+    include_once __DIR__ . '/the.php';
+}

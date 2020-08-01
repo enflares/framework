@@ -24,17 +24,17 @@ trait RelationTrait
     /**
      * @var int
      */
-	protected $relation_sort_order;
+	//protected $relation_sort_order;
 
     /**
      * @var int
      */
-	protected $relation_created_at;
+	//protected $relation_created_at;
 
     /**
      * @var int
      */
-	protected $relation_deleted_at;
+	//protected $relation_deleted_at;
 
     /**
      * Gets/Sets the primary object
@@ -93,7 +93,7 @@ trait RelationTrait
      */
     public function getSortOrder()
     {
-        return $this->relation_sort_order;
+        return $this->__get('relation_sort_order');
     }
 
     /**
@@ -102,7 +102,7 @@ trait RelationTrait
      */
     public function setSortOrder($value)
     {
-        return $this->relation_sort_order = intval($value);
+        return $this->__set('relation_sort_order', intval($value));
     }
 }
 

@@ -11,9 +11,9 @@
 
 // application, request, response, controller, view, model, module, route, action, db
 
+use App\Application as App;
 use enflares\Db\Db;
 use enflares\System\View;
-use App\Application as App;
 use enflares\System\Action;
 use enflares\System\Request;
 use enflares\System\Response;
@@ -56,9 +56,10 @@ if( !function_exists('app') ){
 
         $g = ( is_subclass_of($class = $class ?: App::class, Application::class) )
                 ? call_user_func([$class, 'getInstance'])
-                : FALSE;
+                : FALSE;                
 
         if( $g ) return $g;
+
         throw new RuntimeException('Argument should be the class or an instance of Application');
     }
 }

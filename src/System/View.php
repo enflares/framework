@@ -54,10 +54,11 @@ class View extends Template
      */
     public function setTemplate($name, $base=NULL)
     {
-        $this->__name = $name;
+        $this->view_file($this->__lookUp_template($this->__name = $name, $base));
 
+        /*
         $file = Theme::lookUpTemplate($name);
-        if( !$file && $base ) {
+        if( !is_file($file) && $base ) {
             try {
                 $path = ($base instanceof DataInterface) ? dirname((new ReflectionClass($base))->getFileName()) : $base;
                 $parts = explode('/', strtr($path, '\\', '/'));
@@ -71,8 +72,36 @@ class View extends Template
             } catch (ReflectionException $e) {}
         }
 
-        $this->view_file( $file ?: Theme::lookUpTemplate($name, realpath(path('resources', 'view', 'default'))));
+        $this->view_file( is_file($file) ? $file : Theme::lookUpTemplate($name, realpath(path('resources', 'view', 'default'))));
+        */
         return $this;
+    }
+
+    /**
+     * Lookup a template
+     *
+     * @param string $name
+     * @param string $base
+     * @return string
+     */
+    private function __lookUp_template($name, $base=NULL)
+    {
+        $file = Theme::lookUpTemplate($name);
+        if( !is_file($file) && $base ) {
+            try {
+                $path = ($base instanceof DataInterface) ? dirname((new ReflectionClass($base))->getFileName()) : $base;
+                $parts = explode('/', strtr($path, '\\', '/'));
+
+                while( !empty($parts) ) {
+                    if( $path = realpath(implode(DS, $parts) . DS . 'view') ) break;
+                    array_pop($parts);
+                }
+
+                if( $path ) $file = Theme::lookUpTemplate($name, $path);
+            } catch (ReflectionException $e) {}
+        }
+
+        return is_file($file) ? $file : Theme::lookUpTemplate($name, realpath(path('resources', 'view', 'default')));
     }
 
     /**
@@ -83,6 +112,16 @@ class View extends Template
     public function data($data=NULL)
     {
         if( func_num_args() ) $this->data = $data;
+        return $this;
+    }
+
+    public function import($template, Array $args=NULL)
+    {
+        if( $____FILE____ = $this->__lookUp_template($template) ) {
+            if( $args ) extract($args);
+            include $____FILE____;
+        }
+        
         return $this;
     }
 

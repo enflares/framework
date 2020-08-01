@@ -33,9 +33,8 @@ trait ConfigJsonTrait
             break;
 
             case 2:
-                $code = '$config["' . str_replace('.', '"]["', $key).'"]';
-                if( is_null($value) ) eval("unset($code);");
-                else $$code = $value;
+            default:
+                $config = var_set($config?:[], $key, $value);
                 $this->__set('config', json_encode($config));
                 return $this;
             break;

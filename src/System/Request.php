@@ -1,7 +1,6 @@
 <?php
 namespace enflares\System;
 
-use ArrayAccess;
 use ArrayIterator;
 use Closure;
 
@@ -9,9 +8,79 @@ use Closure;
  * Class Request
  * @package enflares\System
  */
-class Request implements ArrayAccess
+class Request extends Data
 {
     use ArrayAccessTrait;
+
+    /**
+     * Checks if the request is by HEAD method
+     *
+     * @return boolean
+     */
+    public static function isHead()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'HEAD');
+    }
+
+    /**
+     * Checks if the request is by GET method
+     *
+     * @return boolean
+     */
+    public static function isGet()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'GET');
+    }
+
+    /**
+     * Checks if the request is by POST method
+     *
+     * @return boolean
+     */
+    public static function isPost()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'POST');
+    }
+
+    /**
+     * Checks if the request is by DELETE method
+     *
+     * @return boolean
+     */
+    public static function isDelete()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'DELETE');
+    }
+
+    /**
+     * Checks if the request is by PUT method
+     *
+     * @return boolean
+     */
+    public static function isPut()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'PUT');
+    }
+
+    /**
+     * Checks if the request is by PATCH method
+     *
+     * @return boolean
+     */
+    public static function isPatch()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'PATCH');
+    }
+
+    /**
+     * Checks if the request is by OPTIONS method
+     *
+     * @return boolean
+     */
+    public static function isOptions()
+    {
+        return !strcasecmp(static::server('REQUEST_METHOD'), 'OPTIONS');
+    }
 
     /**
      * Fetch an entry from $_GET
