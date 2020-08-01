@@ -35,6 +35,39 @@ class MySQLi extends Db
     private function db() {
         if( $this->connection instanceof \mysqli )
             return $this->connection;
+        return NULL;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function begin()
+    {
+        if( $db=$this->db() ) 
+            return mysqli_autocommit($db, FALSE);
+        return NULL;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function commit()
+    {
+        if( $db=$this->db() ) {
+            return mysqli_commit($db) && mysqli_autocommit($db, TRUE);
+        }
+        return NULL;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function rollback()
+    {
+        if( $db=$this->db() ) {
+            return mysqli_rollback($db) && mysqli_autocommit($db, TRUE);
+        }
+        return NULL;
     }
 
     /**
@@ -43,6 +76,7 @@ class MySQLi extends Db
     public function getAffectedRows()
     {
         if( $db=$this->db() ) return mysqli_affected_rows($db);
+        return NULL;
     }
 
     /**
@@ -51,6 +85,7 @@ class MySQLi extends Db
     public function getInsertedId()
     {
         if( $db=$this->db() ) return mysqli_insert_id($db);
+        return NULL;
     }
 
     /**
@@ -59,6 +94,7 @@ class MySQLi extends Db
     public function getError()
     {
         if( $db=$this->db() ) return mysqli_errno($db);
+        return NULL;
     }
 
     /**
@@ -67,6 +103,7 @@ class MySQLi extends Db
     public function getMessage()
     {
         if( $db=$this->db() ) return mysqli_error($db);
+        return NULL;
     }
 
     /**
@@ -84,6 +121,7 @@ class MySQLi extends Db
             if( $num )
                 return mysqli_fetch_array($result, MYSQLI_NUM);
         }
+        return NULL;
     }
 
     /**
@@ -93,6 +131,7 @@ class MySQLi extends Db
     {
         if( $result instanceof mysqli_result )
             return $result->fetch_object($class, $params);
+        return NULL;
     }
 
     /**
@@ -171,6 +210,7 @@ class MySQLi extends Db
 
         if( $error = mysqli_connect_errno() )
             return Exception::trigger(mysqli_connect_error(), $error);
+        return NULL;
     }
 
     /**
@@ -194,6 +234,7 @@ class MySQLi extends Db
     public function getCharset()
     {
         if( $db=$this->db() ) return mysqli_character_set_name($db);
+        return NULL;
     }
 
     /**
@@ -202,6 +243,7 @@ class MySQLi extends Db
     protected function disconnect($connection)
     {
         if( $db=$this->db() ) return !!mysqli_close($db);
+        return NULL;
     }
 
     /**
@@ -212,6 +254,7 @@ class MySQLi extends Db
     {
         if( $connection = $this->open() )
             return mysqli_query($connection, $sql);
+        return NULL;
     }
 
     /**
@@ -260,21 +303,23 @@ class MySQLi extends Db
         if( is_object($value) )
             $value = serialize($value);
 
-        return ( $db=$this->db() )
+        $value = ( $db=$this->db() )
                 ? mysqli_real_escape_string($db, $value)
                 : addslashes($value);
+                
+        return "'$value'";
     }
 
     /**
      * @inheritDoc
      * @throws \enflares\System\Exception
      */
-    public function columns($table, $likes=NULL, $where=NULL, Array $args=NULL)
+    public function columns($table, $likes=NULL, $where=NULL, Array $args=NULL, $forceUpdate=NULL)
     {
         static $g = array();
         $table = strtolower(trim($table, '#_ '));
 
-        if( !isset($g[$table]) ) {
+        if( !isset($g[$table]) || $forceUpdate ) {
             $g[$table] = FALSE;
 
             $sql = 'SHOW COLUMNS IN #_'.$table;
@@ -308,5 +353,6 @@ class MySQLi extends Db
     public function setDatabase($name)
     {
         if( $db=$this->db() ) return !!mysqli_select_db($db, $name);
+        return NULL;
     }
 }

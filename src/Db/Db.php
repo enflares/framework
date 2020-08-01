@@ -1,8 +1,8 @@
 <?php
 namespace enflares\Db;
 
+use Closure;
 use enflares\System\Component;
-use enflares\Db\Exception;
 
 /**
  * Class Db
@@ -127,6 +127,48 @@ abstract class Db extends Component
     }
 
     /**
+     * Starts a transaction
+     *
+     * @return bool
+     */
+    abstract public function begin();
+
+    /**
+     * Commits changes within a transaction
+     *
+     * @return bool
+     */
+    abstract public function commit();
+
+    /**
+     * Rollbacks changes within a transaction
+     *
+     * @return bool
+     */
+    abstract public function rollback();
+
+    /**
+     * Performs a transaction
+     *
+     * @param Closure $callback
+     * @return mixed
+     * @throws \Exception
+     */
+    public function transaction(Closure $callback) 
+    {
+        $this->begin();
+
+        try{
+            $result = call_user_func($callback, $this);
+            $this->commit();
+            return $result;
+        }catch(\Exception $ex){
+            $this->rollback();
+            throw $ex;
+        }
+    }
+
+    /**
      * Execute an query
      * @param string $sql
      * @param mixed $args
@@ -148,6 +190,7 @@ abstract class Db extends Component
             return new ResultSet($result, $this);
 
         $this->throwError();
+        return NULL;
     }
 
     /**
@@ -167,11 +210,11 @@ abstract class Db extends Component
             return $this->getAffectedRows();
 
         $this->throwError();
+        return NULL;
     }
 
     /**
      * @return $this|void
-     * @throws Exception
      * @throws \enflares\System\Exception
      */
     public function throwError(){
@@ -317,9 +360,10 @@ abstract class Db extends Component
      * @param null $likes
      * @param null $where
      * @param array|null $args
+     * @param bool|null $forceUpdate
      * @return array
      */
-    public abstract function columns($table, $likes=NULL, $where=NULL, Array $args=NULL);
+    public abstract function columns($table, $likes=NULL, $where=NULL, Array $args=NULL, $forceUpdate=NULL);
 
     /**
      * @param $table
@@ -387,6 +431,7 @@ abstract class Db extends Component
                     return $this->getInsertedId();
             }
         }
+        return NULL;
     }
 
     /**
@@ -428,6 +473,7 @@ abstract class Db extends Component
 
             return $this->execute($sql, $args);
         }
+        return NULL;
     }
 
     /**
@@ -444,7 +490,7 @@ abstract class Db extends Component
      */
     public function delete($table, $criteria=NULL, Array $args=NULL, $ordering=NULL, $limit=NULL, $index=NULL)
     {
-        $sql = 'DELETE FROM #_'.$table;
+        $sql = 'DELETE' . ' FROM #_'.$table;
         if( $where = $this->where($criteria, $args) ) $sql .= ' WHERE '.$where;
         if( $ordering ) $sql .= ' ORDER BY '.$this->order($ordering);
         $sql = $this->limit($sql, $limit, $index);
@@ -585,6 +631,7 @@ abstract class Db extends Component
             if( !$op ) $op = 'AND';
             return $this->format(implode(" $op ", $q), (array)$args);
         }
+        return NULL;
     }
 
     /**
