@@ -127,11 +127,12 @@ if( !function_exists('home') ){
 if( !function_exists('import') ){
     /**
      * Include a PHP file
-     * @return mixed
+     * @return bool
      */
     function import() {
         if( $file = realpath(path(...func_get_args()).'.php') )
             return include($file);
+        return false;
     }
 }
 
@@ -149,7 +150,7 @@ if( !function_exists('redirect') ){
         }
 
         $url = json_encode($url);
-        exit("<html><head><meta name=\"refresh\" content=\"0;$url\"><script>window.location.replace($url)</script></head></html>");
+        exit("<html lang='en'><head><meta name=\"refresh\" content=\"0;$url\"><title>Redirecting</title><script>window.location.replace($url)</script></head></html>");
     }
 }
 
