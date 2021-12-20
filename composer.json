@@ -1,0 +1,22 @@
+{
+    "name": "enflares/framework",
+    "description": "The Enflares PHP Framework.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shaotang Zhang",
+            "email": "shaotang.zhang@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "enflares\\": "vendor/enflares/framework/src/"
+        }
+    },
+    "require": {
+        "ext-json": "*",
+        "ext-dom": "*",
+        "ext-simplexml": "*"
+    }
+}
